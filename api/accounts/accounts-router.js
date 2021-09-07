@@ -1,6 +1,6 @@
 const router = require('express').Router()
 const Account = require('./accounts-model')
-const mD = require('./accounts-middleware')
+const {checkAccountId, checkAccountPayload, checkAccountNameUnique} = require('./accounts-middleware')
 
 router.get('/', async (req, res, next) => {
  try {
@@ -11,28 +11,34 @@ router.get('/', async (req, res, next) => {
  }
 })
 
-router.get('/:id',mD.checkAccountId, async (req, res, next) => {
+router.get('/:id', checkAccountId, async (req, res) => {
   res.json(req.account)
 })
 
-router.post('/', mD.checkAccountPayload,
- mD.checkAccountNameUnique, (req, res, next) => {
+
+router.post('/', checkAccountPayload, checkAccountNameUnique, async (req, res, next) => {
   try {
-    res.json('create account')
+    const trimmedName = req.body.name.trim()
+    const newAcc = await Account.create({...req.body, name: trimmedName })
+    res.status(201).json(newAcc)
   } catch(err){
     next(err)
   }
 })
 
-router.put('/:id', mD.checkAccountId, (req, res, next) => {
+router.put('/:id', checkAccountId, checkAccountPayload, async (req, res, next) => {
   try {
-    res.json('update account')
+    const trimmedName = req.body.name.trim()
+    const { id } = req.params
+    const updatedAccountId = await Account.updateById(id,{...req.body, name: trimmedName})
+    const updatedAccount = await Account.getById(updatedAccountId)
+    res.status(200).json(updatedAccount)
   } catch(err){
     next(err)
   }
 });
 
-router.delete('/:id', mD.checkAccountId, (req, res, next) => {
+router.delete('/:id', checkAccountId, (req, res, next) => {
   try {
     res.json('delete account')
   } catch(err){
