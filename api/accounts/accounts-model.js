@@ -19,8 +19,8 @@ const updateById = async (id, account) => {
   return await db('accounts').where('id', id).update(account)
 }
 
-const deleteById = id => {
-  // DO YOUR MAGIC
+const deleteById = async (id) => {
+ return await db('accounts').where('id', id).delete()
 }
 
 module.exports = {
